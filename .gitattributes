@@ -1,0 +1,24 @@
+# 默认按文本处理，并在检出时统一成 LF：本仓库所有文件都是 LF，
+# 固定 eol 可以避免 Windows 上 core.autocrlf 造成的伪改动与换行告警。
+* text=auto eol=lf
+
+# 脚本与文档
+*.ps1   text eol=lf
+*.psm1  text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# 二进制：禁止行尾转换与文本 diff
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.zip   binary
+*.gz    binary
+*.7z    binary
+*.exe   binary
+*.dll   binary
+*.pdf   binary

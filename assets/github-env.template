@@ -1,0 +1,42 @@
+# DeepSeek Harness —— GitHub 上传凭据文件（模板）
+#
+# 用法：把本文件复制成 github.env（去掉 .template 后缀），只填等号后面的内容。
+# 该文件由 DSH 的 github-release skill 读取，仅用于 git 认证，不会被提交到任何仓库。
+#
+# 全局位置（推荐，所有项目共用）：
+#     C:\Users\Administrator\.dsh\secrets\github.env
+# 项目级位置（可选，覆盖全局）：
+#     项目根目录\.git-secrets.local     ← 必须写进 .gitignore
+#
+# 注意：GitHub 早已不能用「账号密码」推送代码。这里的密码字段填的是
+#       Personal Access Token（PAT），不是你的 GitHub 登录密码。
+#       绝对不要把你的 GitHub 登录密码写进任何文件。
+
+# ── 必填 ────────────────────────────────────────────────────────────────────
+
+# Personal Access Token。
+#   推荐 Fine-grained token：https://github.com/settings/personal-access-tokens/new
+#     · Repository access: 只勾要用的仓库（或 All repositories）
+#     · Permissions → Repository permissions:
+#         Contents            = Read and write   （推送代码 / 建 tag / 建 release）
+#         Metadata            = Read-only        （勾 Contents 时会自动带上）
+#         Administration      = Read and write   （仅当需要 skill 帮你新建仓库）
+#   经典 token：https://github.com/settings/tokens/new  勾 repo 即可
+#   复制时务必包含令牌本身，不要带多余空格或引号。
+GITHUB_TOKEN=
+
+# ── 强烈建议填写（git 提交作者身份，用于自动配置 git user.name / user.email）──
+
+GITHUB_USERNAME=
+
+# 邮箱建议用 GitHub 提供的隐私邮箱，避免把你的真实邮箱写进公开提交历史。
+# 在 https://github.com/settings/emails 可以查到形如 12345678+用户名@users.noreply.github.com 的地址。
+GITHUB_EMAIL=
+
+# ── 可选 ────────────────────────────────────────────────────────────────────
+
+# 固定使用的仓库地址；留空则每次由 skill 询问。
+# GITHUB_REPO_URL=https://github.com/yourname/yourrepo.git
+
+# 新建仓库时的默认可见性：private 或 public（留空默认 private，更安全）
+# GITHUB_DEFAULT_VISIBILITY=private

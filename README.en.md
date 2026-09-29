@@ -1,12 +1,13 @@
 # dsh-github-release
 
-> A **gated** GitHub release skill for [DeepSeek Harness](https://github.com/) (DSH):
+> A **gated** GitHub release skill for **DeepSeek Harness** (DSH):
 > one sentence tells the agent to package a local project to spec, scan it for secrets,
 > generate bilingual READMEs, then push it to GitHub with a semantic-version tag.
 
 The skill name (from the `SKILL.md` frontmatter) is **`github-release`**; the repository is
-**`dsh-github-release`**. It must be installed into a directory named `github-release`,
-otherwise DSH will not load it.
+**`dsh-github-release`**. Install it into a directory named `github-release`: the skill name comes only
+from the frontmatter (a differently named directory still loads fine), but `SKILL.md` hardcodes the
+path `skills\github-release`, so those steps fail to find the scripts when the name differs.
 
 ---
 
@@ -63,7 +64,7 @@ DSH loads skills from a user-level skill root, so copy it in under the name `git
 ```powershell
 git clone https://github.com/wanghenry9/dsh-github-release.git
 $src = Join-Path (Get-Location) 'dsh-github-release'
-$dst = Join-Path $env:DSH_HOME 'skills\github-release'   # defaults to C:\Users\<you>\.dsh\skills\github-release
+$dst = Join-Path $env:USERPROFILE\.dsh 'skills\github-release'   # defaults to C:\Users\<you>\.dsh\skills\github-release
 
 New-Item -ItemType Directory -Force -Path $dst | Out-Null
 Copy-Item (Join-Path $src 'SKILL.md') $dst -Force
@@ -74,12 +75,17 @@ Copy-Item (Join-Path $src 'references') $dst -Recurse -Force
 
 DSH watches the skill directory, so the change takes effect immediately — **no restart needed**.
 
-> The skill lives in `$DSH_HOME/skills/` (the user-level skill root) rather than inside the DSH
-> installation, so upgrading `dsh` will not overwrite it.
+> The skill lives in `%USERPROFILE%\.dsh\skills\` (the user-level skill root) rather than inside the
+> DSH installation, so upgrading `dsh` will not overwrite it.
+
+> **Why these docs use `$env:USERPROFILE\.dsh` instead of `$env:DSH_HOME`**: `DSH_HOME` is injected
+> only into child processes that DSH itself spawns — **it is empty in a terminal you open yourself**,
+> where it expands to `\skills\...` and fails (`pwsh` exit code 64). If you changed `DSH_HOME`, use
+> your actual path instead.
 
 ## Credentials
 
-Put your PAT into `$env:DSH_HOME\secrets\github.env` (template: `assets/github-env.template`):
+Put your PAT into `$env:USERPROFILE\.dsh\secrets\github.env` (template: `assets/github-env.template`):
 
 ```ini
 GITHUB_TOKEN=your-token
@@ -100,12 +106,12 @@ For a classic token, ticking `repo` is enough.
 
 **Lookup order** (first match wins): the `GITHUB_TOKEN` environment variable →
 `<project root>\.git-secrets.local` → `<project root>\github.env` →
-`$env:DSH_HOME\secrets\github.env`.
+`$env:USERPROFILE\.dsh\secrets\github.env`.
 
 Verify with the probe (prints a mask only, never the plaintext token):
 
 ```powershell
-pwsh -NoProfile -File "$env:DSH_HOME\skills\github-release\scripts\github-credentials.ps1" -Check
+pwsh -NoProfile -File "$env:USERPROFILE\.dsh\skills\github-release\scripts\github-credentials.ps1" -Check
 ```
 
 ## Quick start

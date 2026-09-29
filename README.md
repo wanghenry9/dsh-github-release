@@ -1,11 +1,12 @@
 # dsh-github-release
 
-> 给 [DeepSeek Harness](https://github.com/)（DSH）用的一套**有闸门**的 GitHub 发布 Skill：
+> 给 **DeepSeek Harness**（DSH）用的一套**有闸门**的 GitHub 发布 Skill：
 > 一句话让 agent 把本地项目按规范打包、扫描敏感信息、生成中英文 README，
 > 再推上 GitHub 并打语义化版本 tag。
 
 技能名（`SKILL.md` frontmatter）是 **`github-release`**；仓库名是 **`dsh-github-release`**。
-安装时目录必须叫 `github-release`，否则技能不会被 DSH 加载。
+安装目录请用 `github-release`：技能名只取自 frontmatter（目录叫别的名字同样能被 DSH 加载），
+但 `SKILL.md` 里把技能路径硬编码成了 `skills\github-release`，目录名不一致时那几步会找不到脚本。
 
 ---
 
@@ -57,7 +58,7 @@
 ```powershell
 git clone https://github.com/wanghenry9/dsh-github-release.git
 $src = Join-Path (Get-Location) 'dsh-github-release'
-$dst = Join-Path $env:DSH_HOME 'skills\github-release'   # 默认 C:\Users\<你>\.dsh\skills\github-release
+$dst = Join-Path $env:USERPROFILE\.dsh 'skills\github-release'   # 默认 C:\Users\<你>\.dsh\skills\github-release
 
 New-Item -ItemType Directory -Force -Path $dst | Out-Null
 Copy-Item (Join-Path $src 'SKILL.md') $dst -Force
@@ -68,12 +69,16 @@ Copy-Item (Join-Path $src 'references') $dst -Recurse -Force
 
 DSH 对技能目录有文件监听，复制完立即生效，**不需要重启**。
 
-> 技能装在 `$DSH_HOME/skills/`（用户级技能根）而不是 DSH 安装目录里，
+> 技能装在 `%USERPROFILE%\.dsh\skills\`（用户级技能根）而不是 DSH 安装目录里，
 > 所以 `dsh` 升级不会覆盖它。
+
+> **为什么文档里用 `$env:USERPROFILE\.dsh` 而不是 `$env:DSH_HOME`**：`DSH_HOME` 只由 DSH 注入到
+> 它自己拉起的子进程里，**你自己开的终端里它是空的**，直接用会拼出 `\skills\...` 而报错
+> （`pwsh` 退出码 64）。如果你改过 `DSH_HOME`，把上面的路径换成实际值即可。
 
 ## 配置凭据
 
-把 PAT 填进 `$env:DSH_HOME\secrets\github.env`（模板见 `assets/github-env.template`）：
+把 PAT 填进 `$env:USERPROFILE\.dsh\secrets\github.env`（模板见 `assets/github-env.template`）：
 
 ```ini
 GITHUB_TOKEN=你的令牌
@@ -92,12 +97,12 @@ GITHUB_EMAIL=你的GitHub邮箱或noreply隐私邮箱
 经典 token 勾 `repo` 即可。
 
 **查找顺序**（先找到先用）：环境变量 `GITHUB_TOKEN` → `<项目根>\.git-secrets.local`
-→ `<项目根>\github.env` → `$env:DSH_HOME\secrets\github.env`。
+→ `<项目根>\github.env` → `$env:USERPROFILE\.dsh\secrets\github.env`。
 
 验证探针（只打印掩码，绝不打印明文）：
 
 ```powershell
-pwsh -NoProfile -File "$env:DSH_HOME\skills\github-release\scripts\github-credentials.ps1" -Check
+pwsh -NoProfile -File "$env:USERPROFILE\.dsh\skills\github-release\scripts\github-credentials.ps1" -Check
 ```
 
 ## 快速开始

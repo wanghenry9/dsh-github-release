@@ -42,9 +42,10 @@ $root = (Resolve-Path -LiteralPath $ProjectPath).Path.TrimEnd('\', '/')
 # 所以 git ls-files 先登记，再由本脚本顶层执行。
 . (Join-Path $PSScriptRoot 'github-git.ps1')
 
-# 技能自身目录强制排除：脚本里写的是正则片段、规则文档里写的是示例文本，都不是泄漏。
-# 注意范围要精确：只排除「脚本目录」与「技能顶层文件」，**不要**排除技能根目录的
-# 整个子树——否则恰好放在技能目录下的真实项目会被整体漏扫（这比误报严重得多）。
+# 技能自身强制排除：脚本里写的是正则片段、规则文档里写的是示例文本，都不是泄漏。
+# 注意范围要精确：只排除「脚本目录」「技能顶层文件」与「本 skill 的规则说明文档」，
+# **不要**排除技能根目录的整个子树——否则恰好放在技能目录下的真实项目会被整体漏扫
+# （这比误报严重得多）。
 $skillRoot = ''
 try { $skillRoot = (Split-Path -Parent $PSScriptRoot).TrimEnd('\', '/') } catch { }
 $selfFiles = @()
@@ -53,6 +54,21 @@ if ($skillRoot) {
   $selfFiles += (Join-Path $skillRoot 'README.md')
 }
 $skippedSelf = 0
+
+# 规则说明文档通篇是「用来演示检测模式」的示例文本，必然命中自己的规则。它不在脚本
+# 目录里，上面两条都盖不住它 —— 结果是「拿本 skill 扫自己」（例如按发布清单自检）
+# 必然报 2 条假 BLOCKER。这里按「相对路径 + 内容签名」精确排除：只有当被扫项目里
+# 存在 …/references/secret-scan-rules.md，且内容确为本规则文档时才跳过，
+# 不会连带放过同路径同名的真实项目文件（签名对不上就照抓）。
+$rulesDocRel = 'references/secret-scan-rules.md'
+
+function Test-RulesDoc {
+  param([string]$RelSlash, [string]$Full)
+  # 用后缀匹配：技能可能被嵌套在更深的目录下（例如直接扫 skills\ 或仓库根）
+  if (-not ('/' + $RelSlash).EndsWith('/' + $rulesDocRel, [System.StringComparison]::OrdinalIgnoreCase)) { return $false }
+  try { $head = (Get-Content -LiteralPath $Full -TotalCount 4 -ErrorAction Stop) -join "`n" } catch { return $false }
+  return ($head -match '敏感信息扫描规则与例外处理' -and $head -match 'github-secret-scan\.ps1')
+}
 
 function Test-SelfPath {
   param([string]$Path)
@@ -192,6 +208,9 @@ function Add-File {
   $rel = if ($trimmed -eq $root) { '' } else { $trimmed.Substring($root.Length).TrimStart('\', '/') }
   $relSlash = $rel -replace '\\', '/'
   $name = [System.IO.Path]::GetFileName($FullPath)
+  # 本 skill 的规则说明文档（按相对路径 + 内容签名排除）。必须放在这里：
+  # Test-SelfPath 只在目录遍历时被调用，-StagedOnly 模式根本不走遍历。
+  if (Test-RulesDoc -RelSlash $relSlash -Full $FullPath) { $script:skippedSelf++; return }
   # -Ignore 必须在这里生效，且必须同时管住「文件」：
   #   · Test-SkipDir 只在目录遍历时被调用，且只拿到目录名 —— 拦不住被命中的文件；
   #   · -StagedOnly 模式根本不走进目录遍历，靠 Test-SkipDir 等于 -Ignore 完全失效。

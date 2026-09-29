@@ -56,7 +56,7 @@ WARN：`.env.example`、`.env.sample`、`.env.template`、`appsettings.Developme
 - 只扫文本类扩展名 + 无扩展名但无 NUL 字节的文件；单文件默认上限 4MB
 - `.ps1` / `.sh` / `.bat` 等脚本超过 1MB 直接跳过（多半是生成物）
 - 不跟随 symlink / junction，避免扫到项目外
-- **脚本自身所在目录强制排除**：里面写的是检测规则字符串，不是泄漏。若把该目录挪出 skill，需要重新评估。
+- **技能自身强制排除**：脚本目录、技能顶层文件（`SKILL.md` / `README.md`），以及**本规则文档**（按「相对路径以 `references/secret-scan-rules.md` 结尾 + 内容签名」匹配，签名对不上就照抓）。它们写的是检测规则字符串与示例文本，不是泄漏。若把这些文件挪出 skill、或改动签名所在的前几行，需要重新评估。
 
 ## 例外处理
 

@@ -244,7 +244,7 @@ DNS api.github.com => 198.18.0.112
 | 建仓库返回 `403` | 缺 `Administration: Read and write`，或组织未授权 | 补权限，或手工建好仓库后走「复用已有」分支 |
 | `StandardOutputEncoding is only supported when standard output is redirected` | 在函数里启动子进程被沙箱拒 | 改用 `New-Capture` + `cmd.exe /c` + `Get-Capture` 三步式，且必须在**调用方顶层** |
 | `The filename, directory name, or volume label syntax is incorrect` | `.bat` 用了 ASCII 编码，中文路径变成 `????` | 写 `.bat` 必须 **UTF-8 无 BOM** |
-| 扫描报告里出现 `references/secret-scan-rules.md` 命中 | 那是**规则文档里的示例文本**，不是泄漏 | 属预期；技能脚本目录已自动排除 |
+| 扫描报告里出现 `references/secret-scan-rules.md` 命中 | 那是**规则文档里的示例文本**，不是泄漏；该文档已按「相对路径 + 内容签名」自动排除 | 若仍命中：文档被改过或不在 `references/` 下，用 `-Ignore` 排除 |
 
 更多故障排查见 `SKILL.md`。
 

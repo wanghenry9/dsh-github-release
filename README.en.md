@@ -264,7 +264,7 @@ section of `SKILL.md` for the order to check things in.
 | Repo creation returns `403` | Missing `Administration: Read and write`, or the org has not authorised the token | Add the permission, or create the repo by hand and use the "reuse existing" path |
 | `StandardOutputEncoding is only supported when standard output is redirected` | A child process was started inside a function, which the sandbox denies | Use the `New-Capture` + `cmd.exe /c` + `Get-Capture` three-step form, at the **caller's top level** |
 | `The filename, directory name, or volume label syntax is incorrect` | The `.bat` was written as ASCII, turning a CJK path into `????` | Write `.bat` files as **UTF-8 without BOM** |
-| The report flags `references/secret-scan-rules.md` | That is **sample text inside the rules document**, not a leak | Expected; the skill's own script directory is excluded automatically |
+| The report flags `references/secret-scan-rules.md` | That is **sample text inside the rules document**, not a leak; the document is auto-excluded by relative path + content signature | If it still shows up, the document was edited (signature mismatch) or is not under `references/` — exclude it with `-Ignore` |
 
 More troubleshooting lives in `SKILL.md`.
 

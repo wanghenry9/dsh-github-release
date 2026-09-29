@@ -281,7 +281,7 @@ $rt2 = Get-Capture -Capture $capT2 -TimeoutMs 300000
 | `The filename, directory name, or volume label syntax is incorrect` | `.bat` 用了 ASCII 编码，中文路径变成 `????` | 写 `.bat` 必须 UTF-8 无 BOM |
 | 子进程写日志失败 / `0xC0000142` | 往系统 temp 写 | 日志写到项目内 `.dsh-release\.run`（记得进 `.gitignore`） |
 | `Could not find a part of the path ...\.dsh-release\.run\...` | 目标目录不可写（例如扫描 skill 自己的安装目录） | `New-CapturePlan` 纯构造 + 顶层自行处理写入失败；扫描脚本已内置降级 |
-| 扫描结果里出现 `references/secret-scan-rules.md` 命中 | 那是**规则文档里的示例文本**，不是泄漏 | 属预期；技能脚本目录已自动排除 |
+| 扫描结果里出现 `references/secret-scan-rules.md` 命中 | 那是**规则文档里的示例文本**，不是泄漏；该文档已按「相对路径 + 内容签名」自动排除 | 若仍命中：说明该文档被改过（签名行对不上）或不在 `references/` 下，用 `-Ignore` 排除 |
 | 写入 `~/.dsh/...` 被拒绝 | 文件沙箱只允许写工作区 | 装 skill 或建凭据文件时申请一次 `danger-full-access`，并说明理由 |
 | `credential.helper` 配好仍要账号密码 | `GITHUB_TOKEN` 没在同一进程里 | 在同一个 PowerShell 会话里设置环境变量后再 push |
 | 令牌 write 权限不足 | 细粒度 PAT 缺 Contents: Read and write | 让用户去 token 设置页补权限 |
@@ -308,7 +308,7 @@ git -C <项目> config credential.helper '!f() { test "$1" = get && printf "user
 - `scripts/github-credentials.ps1` —— 凭据读取与掩码探针（同进程函数 `Get-GitHubCredentials`）
 - `scripts/github-git.ps1` —— 外部命令捕获助手 `New-Capture` / `Get-Capture`（`New-CapturePlan` 为纯构造，目标目录不可写时用它）
 - `scripts/github-repo-check.ps1` —— 打包规范校验
-- `scripts/github-secret-scan.ps1` —— 敏感信息扫描（阻断式；自动排除技能自身脚本目录）
+- `scripts/github-secret-scan.ps1` —— 敏感信息扫描（阻断式；自动排除技能自身脚本目录、顶层文件与规则说明文档）
 - `scripts/github-repo-create.ps1` —— 令牌探测 / 仓库查询 / 仓库创建
 - `assets/github-env.template` —— 凭据文件模板
 - `references/secret-scan-rules.md` —— 扫描规则与例外处理
